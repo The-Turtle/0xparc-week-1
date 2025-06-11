@@ -1,0 +1,240 @@
+<!doctype html>
+<html>
+<head>
+  <title>RSA Group Signature Demo</title>
+  <link href="https://fonts.googleapis.com/css2?family=Quicksand:wght@400;500;600&display=swap" rel="stylesheet">
+  <style>
+    body {
+      font-family: 'Quicksand', sans-serif;
+      background: linear-gradient(135deg, #e0f7fa 0%, #80deea 100%);
+      color: #006064;
+      min-height: 100vh;
+      margin: 0;
+      padding: 20px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+
+    .container {
+      max-width: 1200px;
+      width: 100%;
+      background: rgba(255, 255, 255, 0.9);
+      padding: 30px;
+      border-radius: 15px;
+      box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+      box-sizing: border-box;
+    }
+
+    h1 {
+      text-align: center;
+      color: #00838f;
+      margin-bottom: 30px;
+    }
+
+    .input-group {
+      margin-bottom: 20px;
+      width: 100%;
+      box-sizing: border-box;
+    }
+
+    textarea {
+      width: 100%;
+      padding: 15px;
+      border: 2px solid #80deea;
+      border-radius: 8px;
+      font-family: 'Courier New', monospace;
+      font-size: 14px;
+      resize: vertical;
+      min-height: 100px;
+      background: rgba(255, 255, 255, 0.9);
+      transition: border-color 0.3s ease;
+      box-sizing: border-box;
+    }
+
+    textarea:focus {
+      outline: none;
+      border-color: #00838f;
+      box-shadow: 0 0 5px rgba(0, 131, 143, 0.3);
+    }
+
+    .button-container {
+      display: flex;
+      justify-content: center;
+      margin: 20px 0;
+    }
+
+    button {
+      background: #00838f;
+      color: white;
+      border: none;
+      padding: 12px 24px;
+      border-radius: 6px;
+      font-family: 'Quicksand', sans-serif;
+      font-size: 16px;
+      cursor: pointer;
+      transition: background-color 0.3s ease;
+    }
+
+    button:hover {
+      background: #006064;
+    }
+
+    button:disabled {
+      background: #b2dfdb;
+      cursor: not-allowed;
+    }
+
+    .result-section {
+      margin: 20px 0;
+      padding: 15px;
+      background: #f5f5f5;
+      border-radius: 6px;
+    }
+
+    .proof-section {
+      margin-top: 20px;
+      border: 1px solid #80deea;
+      border-radius: 8px;
+      overflow: hidden;
+    }
+
+    .proof-header {
+      background: #b2dfdb;
+      padding: 10px 15px;
+      cursor: pointer;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .proof-content {
+      display: none;
+      padding: 15px;
+      background: white;
+    }
+
+    .proof-content.show {
+      display: block;
+    }
+
+    pre {
+      background: #f5f5f5;
+      padding: 15px;
+      border-radius: 6px;
+      overflow-x: auto;
+      margin: 10px 0;
+    }
+
+    code {
+      font-family: 'Courier New', monospace;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>RSA Group Signature Demo</h1>
+    
+    <div class="input-group">
+      <textarea id="userMessage" placeholder="Enter a message (as a number)" rows="10"></textarea>
+    </div>
+    
+    <div class="input-group">
+      <textarea id="userKeys" placeholder="Enter a comma-separated list of up to 100 4096-bit public RSA keys" rows="10"></textarea>
+    </div>
+
+    <div class="input-group">
+      <textarea id="userSignature" placeholder="Enter your signature of the message" rows="10"></textarea>
+    </div>
+
+    <div class="input-group">
+      <textarea id="userKey" placeholder="Enter your 4096-bit public RSA key" rows="10"></textarea>
+    </div>
+
+    <div class="button-container">
+      <button id="bGenProof">Create Proof</button>
+    </div>
+
+    <div class="result-section">
+      <pre>Result: <code id="result">[result]</code></pre>
+    </div>
+
+    <div class="proof-section">
+      <div class="proof-header" onclick="toggleProof()">
+        <span>Proof</span>
+        <span class="toggle-icon">▼</span>
+      </div>
+      <div class="proof-content" id="proofContent">
+        <pre><code id="proof">[proof]</code></pre>
+      </div>
+    </div>
+  </div>
+
+  <script src="snarkjs.min.js"></script>
+  <script src="helper.js"></script>
+  <script>
+    const proofComponent = document.getElementById('proof');
+    const resultComponent = document.getElementById('result');
+    const bGenProof = document.getElementById("bGenProof");
+
+    bGenProof.addEventListener("click", calculateProof);
+
+    const userMessage = sampleMessage; // document.getElementById('userMessage').value;
+    const parsedMessage = ["15", "3", "0"]; // splitBigIntToChunks(BigInt(userMessage));
+
+    const userKeys = samplePublicKeys; // document.getElementById('userKeys').value;
+    const parsedKeys = [["0", "6", "0"], ["1", "6", "0"], ["2", "6", "0"], ["3", "6", "0"], ["4", "6", "0"]]; // (userKeys.split(',')).map(key => splitBigIntToChunks(parseRSAPublicKey(key)));
+    
+    const totalKeys = 10;
+    if (parsedKeys.length > totalKeys) {
+      throw new Error(`Too many keys: maximum allowed is ${totalKeys}`);
+    }
+    while (parsedKeys.length < totalKeys) {
+      parsedKeys.push(parsedKeys[parsedKeys.length - 1]);
+    }
+
+    const userSignature = sampleSignature; // document.getElementById('userSignature').value;
+    const parsedSignature = ["3", "0", "0"]; // splitBigIntToChunks(parseSignature(userSignature));
+
+    const userKey = holdenPublicKey; // document.getElementById('userKey').value;
+    const parsedKey = ["4", "6", "0"]; // splitBigIntToChunks(parseRSAPublicKey(userKey));
+
+    function toggleProof() {
+      const content = document.getElementById('proofContent');
+      const toggleIcon = document.querySelector('.toggle-icon');
+      content.classList.toggle('show');
+      toggleIcon.textContent = content.classList.contains('show') ? '▼' : '▶';
+    }
+
+    async function calculateProof() {
+      bGenProof.disabled = true;
+      bGenProof.textContent = "Generating";
+      try {
+        const { proof, publicSignals } =
+          await snarkjs.groth16.fullProve({
+            message: parsedMessage,
+            keys: parsedKeys,
+            signature: parsedSignature,
+            correctKey: parsedKey}, "circuit_js/circuit.wasm", "circuit_0000.zkey");
+
+        proofComponent.innerHTML = JSON.stringify(proof, null, 1);
+
+        const vkey = await fetch("verification_key.json").then( function(res) {
+            return res.json();
+        });
+
+        const res = await snarkjs.groth16.verify(vkey, publicSignals, proof);
+
+        resultComponent.innerHTML = res;
+      } catch (err) {
+        if (err && err.message && err.message.includes("Assert Failed")) {
+          proofComponent.innerHTML = "assertion failed during proof verification"
+          resultComponent.innerHTML = "false";
+        }
+      }
+      bGenProof.disabled = false;
+      bGenProof.textContent = "Create Proof";
+    }
+  </script>
+</body>
+</html>

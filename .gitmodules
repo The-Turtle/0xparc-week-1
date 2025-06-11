@@ -1,0 +1,3 @@
+[submodule "holden/holden/circom-ecdsa"]
+	path = holden/holden/circom-ecdsa
+	url = https://github.com/0xPARC/circom-ecdsa.git
