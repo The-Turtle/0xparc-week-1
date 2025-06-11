@@ -85,18 +85,16 @@
       cursor: not-allowed;
     }
 
-    .result-section {
-      margin: 20px 0;
-      padding: 15px;
-      background: #f5f5f5;
-      border-radius: 6px;
-    }
-
     .proof-section {
       margin-top: 20px;
       border: 1px solid #80deea;
       border-radius: 8px;
       overflow: hidden;
+      display: none;
+    }
+
+    .proof-section.show {
+      display: block;
     }
 
     .proof-header {
@@ -155,10 +153,6 @@
       <button id="bGenProof">Create Proof</button>
     </div>
 
-    <div class="result-section">
-      <pre>Result: <code id="result">[result]</code></pre>
-    </div>
-
     <div class="proof-section">
       <div class="proof-header" onclick="toggleProof()">
         <span>Proof</span>
@@ -174,18 +168,17 @@
   <script src="helper.js"></script>
   <script>
     const proofComponent = document.getElementById('proof');
-    const resultComponent = document.getElementById('result');
     const bGenProof = document.getElementById("bGenProof");
 
     bGenProof.addEventListener("click", calculateProof);
 
-    const userMessage = sampleMessage; // document.getElementById('userMessage').value;
-    const parsedMessage = ["15", "3", "0"]; // splitBigIntToChunks(BigInt(userMessage));
+    const userMessage = document.getElementById('userMessage').value;
+    const parsedMessage = splitBigIntToChunks(BigInt(userMessage));
 
-    const userKeys = samplePublicKeys; // document.getElementById('userKeys').value;
-    const parsedKeys = [["0", "6", "0"], ["1", "6", "0"], ["2", "6", "0"], ["3", "6", "0"], ["4", "6", "0"]]; // (userKeys.split(',')).map(key => splitBigIntToChunks(parseRSAPublicKey(key)));
+    const userKeys = document.getElementById('userKeys').value;
+    const parsedKeys = (userKeys.split(',')).map(key => splitBigIntToChunks(parseRSAPublicKey(key)));
     
-    const totalKeys = 10;
+    const totalKeys = 100;
     if (parsedKeys.length > totalKeys) {
       throw new Error(`Too many keys: maximum allowed is ${totalKeys}`);
     }
@@ -193,11 +186,11 @@
       parsedKeys.push(parsedKeys[parsedKeys.length - 1]);
     }
 
-    const userSignature = sampleSignature; // document.getElementById('userSignature').value;
-    const parsedSignature = ["3", "0", "0"]; // splitBigIntToChunks(parseSignature(userSignature));
+    const userSignature = document.getElementById('userSignature').value;
+    const parsedSignature = splitBigIntToChunks(parseSignature(userSignature));
 
-    const userKey = holdenPublicKey; // document.getElementById('userKey').value;
-    const parsedKey = ["4", "6", "0"]; // splitBigIntToChunks(parseRSAPublicKey(userKey));
+    const userKey = document.getElementById('userKey').value;
+    const parsedKey = splitBigIntToChunks(parseRSAPublicKey(userKey));
 
     function toggleProof() {
       const content = document.getElementById('proofContent');
@@ -223,13 +216,16 @@
             return res.json();
         });
 
-        const res = await snarkjs.groth16.verify(vkey, publicSignals, proof);
-
-        resultComponent.innerHTML = res;
+        await snarkjs.groth16.verify(vkey, publicSignals, proof);
+        
+        // Show proof section after proof is generated
+        document.querySelector('.proof-section').classList.add('show');
       } catch (err) {
         if (err && err.message && err.message.includes("Assert Failed")) {
-          proofComponent.innerHTML = "assertion failed during proof verification"
-          resultComponent.innerHTML = "false";
+          proofComponent.innerHTML = "assertion failed during proof verification";
+          
+          // Show proof section even if there's an error
+          document.querySelector('.proof-section').classList.add('show');
         }
       }
       bGenProof.disabled = false;

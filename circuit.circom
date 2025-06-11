@@ -100,4 +100,4 @@ template GroupSignature(n, k, l) {
 }
 
 
-component main {public [message, keys, signature, correctKey]} = GroupSignature(4, 3, 10); // GroupSignature(120, 35, 100);
+component main {public [message, keys, signature, correctKey]} = GroupSignature(120, 35, 100);
