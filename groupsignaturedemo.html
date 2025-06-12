@@ -184,7 +184,7 @@
       bGenProof.textContent = "Generating";
       const message = userMessage.value;
       const hashedMessage = await sha512(message);
-      const parsedHashedMessage = splitBigIntToChunks(BigInt('0x' + hashedMessage));
+      const parsedHashedMessage = splitBigIntToChunks(sha512ToPkcs1v15BigInt(hashedMessage));
       const parsedKeys = (userKeys.value.split(',')).map(key => splitBigIntToChunks(parseRSAPublicKey(key)));
       const parsedSignatureAndKey = parseSSHSignature(userSignature.value);
       const parsedSignature = splitBigIntToChunks(parsedSignatureAndKey.signature);

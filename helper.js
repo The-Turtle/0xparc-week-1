@@ -65,32 +65,64 @@ function sha512(message) {
     }
 }
 
-function pkcs1v15PadSHA512(hashHex, modulus) {
-    // Calculate the number of bits in the modulus
-    const modulusBits = modulus.toString(2).length;
-    
-    // The SHA-512 OID + ASN.1 structure for the hash algorithm
-    const hashPrefix = "3051300d060960864801650304020305000440";
-    
-    // Combine the hash prefix with the actual hash value
-    const encodedHash = hashPrefix + hashHex;
-    
-    // Calculate padding length (in bytes)
-    const modulusBytes = Math.ceil(modulusBits / 8);
-    const paddingLength = modulusBytes - 3 - encodedHash.length / 2;
-    
-    if (paddingLength < 8) {
-        throw new Error("Modulus too small for the hash and padding");
+function sha512ToPkcs1v15BigInt(hashInput, modulusBitLength = 4096) {
+    // 1) Normalize hash bytes
+    let hashBytes;
+    if (typeof hashInput === 'string') {
+        if (hashInput.length !== 128) {
+            throw new Error('Hex string must be exactly 128 characters for SHA-512');
+        }
+        hashBytes = new Uint8Array(64);
+        for (let i = 0; i < 64; i++) {
+            hashBytes[i] = parseInt(hashInput.slice(2*i, 2*i+2), 16);
+        }
+    } else if (hashInput instanceof Uint8Array) {
+        if (hashInput.length !== 64) {
+            throw new Error('Uint8Array must be exactly 64 bytes for SHA-512');
+        }
+        hashBytes = hashInput;
+    } else {
+        throw new TypeError('hashInput must be a hex string or Uint8Array');
     }
-    
-    // Create the padding string (0xFF bytes)
-    const padding = "ff".repeat(paddingLength);
-    
-    // Construct the padded message: 0x00 || 0x01 || PS || 0x00 || T
-    const paddedMessage = "0001" + padding + "00" + encodedHash;
-    
-    // Convert the hex string to a BigInt
-    return BigInt("0x" + paddedMessage);
+
+    // 2) DigestInfo prefix for SHA-512 (ASN.1 DER sequence):
+    //    SEQUENCE {AlgID-sha512, NULL} OCTET STRING(64)
+    const digestInfoPrefixHex = (
+        '3051300d' +                 // SEQUENCE, length 0x51
+        '0609608648016503040203' +   // OID 2.16.840.1.101.3.4.2.3 (sha512)
+        '0500' +                     // NULL
+        '0440'                       // OCTET STRING, length 0x40 (64)
+    );
+    const prefixBytes = new Uint8Array(digestInfoPrefixHex.match(/.{2}/g).map(h => parseInt(h,16)));
+
+    // 3) Build T = prefix || H
+    const tLen = prefixBytes.length + hashBytes.length; // should be 19 + 64 = 83
+    const T = new Uint8Array(tLen);
+    T.set(prefixBytes, 0);
+    T.set(hashBytes, prefixBytes.length);
+
+    // 4) Compute padding: EM = 0x00 || 0x01 || PS || 0x00 || T
+    const k = modulusBitLength / 8;
+    if (k < tLen + 3) {
+        throw new Error('Modulus too short for PKCS#1 v1.5 with SHA-512');
+    }
+    const psLen = k - tLen - 3;
+    const EM = new Uint8Array(k);
+    let offset = 0;
+    EM[offset++] = 0x00;
+    EM[offset++] = 0x01;
+    // PS = 0xff repeated
+    EM.fill(0xff, offset, offset + psLen);
+    offset += psLen;
+    EM[offset++] = 0x00;
+    EM.set(T, offset);
+
+    // 5) Convert EM (octet string) → BigInt via OS2IP
+    let hex = '';
+    for (const byte of EM) {
+        hex += byte.toString(16).padStart(2, '0');
+    }
+    return BigInt('0x' + hex);
 }
 
 function parseSSHSignature(b64) {
