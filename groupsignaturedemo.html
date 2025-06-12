@@ -29,13 +29,26 @@
     h1 {
       text-align: center;
       color: #00838f;
+      margin-bottom: 15px;
+    }
+
+    .intro-text {
+      text-align: center;
       margin-bottom: 30px;
+      line-height: 1.5;
     }
 
     .input-group {
       margin-bottom: 20px;
       width: 100%;
       box-sizing: border-box;
+    }
+
+    .input-label {
+      display: block;
+      margin-bottom: 8px;
+      font-weight: 500;
+      color: #00838f;
     }
 
     textarea {
@@ -74,6 +87,7 @@
       font-size: 16px;
       cursor: pointer;
       transition: background-color 0.3s ease;
+      margin: 0 10px;
     }
 
     button:hover {
@@ -83,6 +97,15 @@
     button:disabled {
       background: #b2dfdb;
       cursor: not-allowed;
+    }
+
+    .preset-link {
+      display: block;
+      text-align: center;
+      margin-bottom: 20px;
+      color: #00838f;
+      text-decoration: underline;
+      cursor: pointer;
     }
 
     .proof-section {
@@ -127,27 +150,64 @@
     code {
       font-family: 'Courier New', monospace;
     }
+
+    .footer {
+      margin-top: 30px;
+      text-align: center;
+      font-size: 14px;
+      color: #00838f;
+      border-top: 1px solid #80deea;
+      padding-top: 15px;
+    }
+
+    .error-message {
+      color: #d32f2f;
+      text-align: center;
+      font-weight: 500;
+      margin: 20px 0;
+      padding: 15px;
+      border-radius: 6px;
+      background-color: rgba(211, 47, 47, 0.1);
+      display: none;
+    }
+
+    .error-message.show {
+      display: block;
+    }
   </style>
 </head>
 <body>
   <div class="container">
     <h1>RSA Group Signature Demo</h1>
     
+    <p class="intro-text">
+      As part of the first week of our 0xPARC internship, we built an RSA Group Signature verifier! 
+      This allows any individual to verify that a message was signed by a member of a group 
+      (specified by a set of public RSA keys) without revealing which group member signed the message
+      or the signature itself.
+    </p>
+    
     <div class="input-group">
-      <textarea id="userMessage" placeholder="Enter a message" rows="10">0xPARC</textarea>
+      <textarea id="userMessage" placeholder="Enter a message" rows="3"></textarea>
     </div>
     
     <div class="input-group">
-      <textarea id="userKeys" placeholder="Enter a comma-separated list of up to 100 4096-bit public RSA keys" rows="10">ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAACAQCSYtVssAMu4s3V+3wA24y8UCXqGCDJtNqTDouo68KUTdM2xyqw7J/cCvjle3MnJAKn975nVvb+sGWe1XRLb6wCJqJ4ezb+V9Tc1jrOwNLUGEiRbI1MR80SHvlsY9wNNt9U7EzqD8GLXwpgrjbaHySsaR29Zj6udafTdHnNVsb2FHNSzk5NaudcgUhcUxSTpkFhGFETdxnfrnZ4fqrsCHinZjU2FTPqqCI2//7vBKzg8APw2e5bxX2qLP79YSpUWgldf810rf/ccXyw7RT1iYI+xFsu1jkofXI8di+qoh4sKZ/7sPhDdWz2Ep22y9L6rUhHbx42R2LRV+KKCxqj9Gac8uk/YA3fr1qtsViAXsEd8OqtCg2pU0MA8m9JNDwLqmIzJKOqjFInqH7MPPnHxBDXym4R2Dh0EoaPRU2FZ+ZtzFgYBbL/39b5jj1EWuaGIkShbYTnY1wKpx1ZEx9vpuyAcP3dE37FDOa8OqHv6El26NtE9akbL/AGViYfeNTyPTgHOL8nTF6c/aQxzz9p1wtRPyYKRux9vJ6YzQMERI/y5U1NTo2XAuU1JA7f9/YaIHPdW1fvtEw/95dr7fexCeJW2AUL41cZ01bOIahPTuEttfZuUM0LceOfRmvW0XAAu0c4PP6rdPYHhlsn9MuMTbE5xywPpH/LMTrWivpxs8+zEQ==</textarea>
+      <textarea id="userKeys" placeholder="Enter a comma-separated list of up to 100 4096-bit public RSA keys" rows="10"></textarea>
     </div>
 
     <div class="input-group">
-      <textarea id="userSignature" placeholder="Enter your signature of the message" rows="10">U1NIU0lHAAAAAQAAAhcAAAAHc3NoLXJzYQAAAAMBAAEAAAIBAJJi1WywAy7izdX7fADbjLxQJeoYIMm02pMOi6jrwpRN0zbHKrDsn9wK+OV7cyckAqf3vmdW9v6wZZ7VdEtvrAImonh7Nv5X1NzWOs7A0tQYSJFsjUxHzRIe+Wxj3A0231TsTOoPwYtfCmCuNtofJKxpHb1mPq51p9N0ec1WxvYUc1LOTk1q51yBSFxTFJOmQWEYURN3Gd+udnh+quwIeKdmNTYVM+qoIjb//u8ErODwA/DZ7lvFfaos/v1hKlRaCV1/zXSt/9xxfLDtFPWJgj7EWy7WOSh9cjx2L6qiHiwpn/uw+EN1bPYSnbbL0vqtSEdvHjZHYtFX4ooLGqP0Zpzy6T9gDd+vWq2xWIBewR3w6q0KDalTQwDyb0k0PAuqYjMko6qMUieofsw8+cfEENfKbhHYOHQSho9FTYVn5m3MWBgFsv/f1vmOPURa5oYiRKFthOdjXAqnHVkTH2+m7IBw/d0TfsUM5rw6oe/oSXbo20T1qRsv8AZWJh941PI9OAc4vydMXpz9pDHPP2nXC1E/JgpG7H28npjNAwREj/LlTU1OjZcC5TUkDt/39hogc91bV++0TD/3l2vt97EJ4lbYBQvjVxnTVs4hqE9O4S219m5QzQtx459Ga9bRcAC7Rzg8/qt09geGWyf0y4xNsTnHLA+kf8sxOtaK+nGzz7MRAAAABGZpbGUAAAAAAAAABnNoYTUxMgAAAhQAAAAMcnNhLXNoYTItNTEyAAACAGhJDy15QzBMNbEp1KrsuyGYFaI0y3vKrIRfbxv03N+qV2AJwZXsTYc+LGcD53TH0xmE/ixo4zJFYvAqqL6o7+5D97pCszWJcKmPG2QvpO4fu0mJLVwgw2bEO/iVL3JsMMqKCegDzC3byqDv44NT3OltWtQRdaxYpGGsNQJ4j1D95iBJ85ua4oy1MdGgImD+fI+RPxZ+GZWHhfiHUDUxhmrRX7g+JXT2igE5ny6llLe/HEpkaGwS1eiov36ZQNlrwsWIkdi1MoWx9xiXrHeLoSqh8m8I7Qsf6xYZqcZ97eotgrrcvMP00sWs17+JzLR6spEx3czMpP/ZR8CBOSy2pflZd+0gRgt8lNNmE71YptUdfw5RK/+NYULDc90KdAyw3D4RW0eWmwjN1GZphTZUWTyOsd2shJTTeZg+PUc2OCvEP4Okcfg63yzgAMCUk0OBCZVc4JtvfNRFKCkXKFYYK3EP7k8fjfC70iTVxu1d6oWfg670zgAssTWXvc2gstRyFfNdSv+AAYbNCtf3AF/OwIydqBpv2PxJfTse22OJwNuppQ7R9XOIyFprp5eFfRSKXm6fOwPLsE4uIqvxs7EQQ10SNzWae2B6bh1rPZKnVxFP34UKrHdc0HYV/Hy3AcSGTJNTSlhuV/ajAD75s+HmOlsJE0L2wrSvl/dMPPtcpcoI</textarea>
+      <textarea id="userSignature" placeholder="Enter your signature of the message" rows="10"></textarea>
+    </div>
+
+    <div class="preset-link">
+      <a id="fillPresetValues" href="javascript:void(0);">Fill in preset values</a>
     </div>
 
     <div class="button-container">
       <button id="bGenProof">Create Proof</button>
     </div>
+
+    <div class="error-message" id="errorMessage"></div>
 
     <div class="proof-section">
       <div class="proof-header" onclick="toggleProof()">
@@ -158,19 +218,33 @@
         <pre><code id="proof">[proof]</code></pre>
       </div>
     </div>
+
+    <div class="footer">
+      Project created by Holden, Duru, and Pranjal
+    </div>
   </div>
 
   <script src="snarkjs.min.js"></script>
   <script src="helper.js"></script>
+  
   <script>
     const proofComponent = document.getElementById('proof');
     const bGenProof = document.getElementById("bGenProof");
+    const errorMessage = document.getElementById("errorMessage");
+    const proofSection = document.querySelector('.proof-section');
 
     bGenProof.addEventListener("click", calculateProof);
 
     const userMessage = document.getElementById('userMessage');
     const userKeys = document.getElementById('userKeys');
     const userSignature = document.getElementById('userSignature');
+    const fillPresetValues = document.getElementById('fillPresetValues');
+
+    fillPresetValues.addEventListener("click", function() {
+      userMessage.value = workingMessage;
+      userKeys.value = workingKeys;
+      userSignature.value = workingSignature;
+    });
 
     function toggleProof() {
       const content = document.getElementById('proofContent');
@@ -180,23 +254,63 @@
     }
 
     async function calculateProof() {
+      // Immediately disable button and change text
       bGenProof.disabled = true;
       bGenProof.textContent = "Generating";
-      const message = userMessage.value;
-      const hashedMessage = await sha512(message);
-      const parsedHashedMessage = splitBigIntToChunks(sha512ToPkcs1v15BigInt(hashedMessage));
-      const parsedKeys = (userKeys.value.split(',')).map(key => splitBigIntToChunks(parseRSAPublicKey(key)));
-      const parsedSignatureAndKey = parseSSHSignature(userSignature.value);
-      const parsedSignature = splitBigIntToChunks(parsedSignatureAndKey.signature);
-      const parsedKey = splitBigIntToChunks(parsedSignatureAndKey.publicKey);
-      const totalKeys = 100;
-      if (parsedKeys.length > totalKeys) {
-        throw new Error(`Too many keys: maximum allowed is ${totalKeys}`);
-      }
-      while (parsedKeys.length < totalKeys) {
-        parsedKeys.push(parsedKeys[parsedKeys.length - 1]);
-      }
+      
+      // Reset UI state
+      errorMessage.textContent = "";
+      errorMessage.classList.remove("show");
+      proofSection.classList.remove("show");
+      
       try {
+        const message = userMessage.value;
+        if (!message.trim()) {
+          throw new Error("Please enter a message");
+        }
+        
+        const parsedHashedMessage = splitBigIntToChunks(await messageToBigInt(message));
+        
+        if (!userKeys.value.trim()) {
+          throw new Error("Please enter at least one RSA public key");
+        }
+        
+        let parsedKeys;
+        try {
+          parsedKeys = (userKeys.value.split(',')).map(key => {
+            const parsed = parseRSAPublicKey(key.trim());
+            if (parsed === null) {
+              throw new Error("Failed to parse one or more keys");
+            }
+            return splitBigIntToChunks(parsed);
+          });
+        } catch (keyError) {
+          throw new Error("Key parsing error: " + keyError.message);
+        }
+        
+        if (!userSignature.value.trim()) {
+          throw new Error("Please enter a signature");
+        }
+        
+        let parsedSignatureAndKey;
+        try {
+          parsedSignatureAndKey = parseSSHSignature(userSignature.value);
+        } catch (sigError) {
+          throw new Error("Signature parsing error: " + sigError.message);
+        }
+        
+        const parsedSignature = splitBigIntToChunks(parsedSignatureAndKey.signature);
+        const parsedKey = splitBigIntToChunks(parsedSignatureAndKey.publicKey);
+        
+        const totalKeys = 100;
+        if (parsedKeys.length > totalKeys) {
+          throw new Error(`Too many keys: maximum allowed is ${totalKeys}`);
+        }
+        
+        while (parsedKeys.length < totalKeys) {
+          parsedKeys.push(parsedKeys[parsedKeys.length - 1]);
+        }
+        
         console.log(parsedHashedMessage, parsedKeys[0], parsedSignature, parsedKey);
         const { proof, publicSignals } =
           await snarkjs.groth16.fullProve({
@@ -213,18 +327,25 @@
 
         await snarkjs.groth16.verify(vkey, publicSignals, proof);
         
-        // Show proof section after proof is generated
-        document.querySelector('.proof-section').classList.add('show');
+        // Show proof section after successful proof generation
+        proofSection.classList.add("show");
       } catch (err) {
         if (err && err.message && err.message.includes("Assert Failed")) {
-          proofComponent.innerHTML = "assertion failed during proof verification";
-          
-          // Show proof section even if there's an error
-          document.querySelector('.proof-section').classList.add('show');
+          // Display error message outside the proof dropdown
+          errorMessage.textContent = "ERROR: assertion failed during proof verification";
+          errorMessage.classList.add("show");
+          // Don't show the proof section
+        } else {
+          // Handle other errors
+          errorMessage.textContent = "ERROR: " + (err.message || "Unknown error");
+          errorMessage.classList.add("show");
         }
+        console.error(err);
+      } finally {
+        // Always re-enable the button when done
+        bGenProof.disabled = false;
+        bGenProof.textContent = "Create Proof";
       }
-      bGenProof.disabled = false;
-      bGenProof.textContent = "Create Proof";
     }
   </script>
 </body>
