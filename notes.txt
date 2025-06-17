@@ -1,0 +1,116 @@
+----------bitify.circom----------
+
+Num2Bits(n)
+> input in
+> output out[n]
+> converts a number with at most n bits to binary
+> n quadratic constraints
+
+Bits2Num(n)
+> input in[n]
+> output out
+> converts a binary number with n bits to an integer
+> 0 quadratic constraints
+
+// Num2BitsNeg(n)
+// > input in
+// > output out[n]
+// > converts 2^n - in into binary, assuming in has n bits (except for in = 0, which returns 0)
+// > n+1 quadratic constraints
+
+----------binsum.circom----------
+
+BinSum(n, ops)
+> input in[ops][n]
+> output out[nout]
+> sums ops n-bit numbers
+> n + log2(ops) quadratic constraints
+
+----------comparators.circom----------
+
+IsZero()
+> input in
+> output out
+> outputs 1 if in = 0, 0 otherwise
+> 1 quadratic constraint
+
+LessThan(n) 
+> input in[2]
+> output out
+> outputs 1 if in[0] < in[1] and 0 otherwise
+> n+1 quadratic constraints
+
+----------bigint.circom----------
+
+ModSum(n)
+> input a, b
+> output sum, carry
+> sums two numbers modulo 2**n with a carry bit
+> n+1 quadratic constraints
+
+ModSub(n)
+> input a, b
+> output out, borrow
+> subtracts two numbers modulo 2**n with a borrow bit
+> n+1 quadratic constraints
+
+ModSubThree(n)
+> input a, b, c
+> output out, borrow
+> computes a-b-c assuming a-b-c >= 2**n
+> n+2 quadratic constraints
+
+ModSumThree(n)
+> input a, b, c
+> output sum, carry
+> computes a+b+c modulo 2**n
+> n+2 quadratic constraints
+
+ModSumFour(n)
+> input a, b, c, d
+> output sum, carry
+> computes a+b+c+d modulo 2**n
+> n+2 quadratic constraints
+
+ModProd(n)
+> input a, b
+> output prod, carry
+> product mod 2**n with carry, assuming n <= 126
+> 2n+1 quadratic constraints
+
+Split(n, m)
+> input in
+> output small, big
+> splits an (n+m)-bit input into an n-bit output (small) and an m-bit output (big)
+> n+m quadratic constraints
+
+SplitThree(n, m, k)
+> input in
+> output small, medium, big
+> splits an (n+m+k)-bit input into an n-bit output, m-bit output, and k-bit output
+> n+m+k quadratic constraints
+
+BigAdd(n, k)
+> input a[k], b[k]
+> output out[k+1]
+> adds two numbers stored as k n-bit registers
+> k*(n+2)-1 quadratic constraints
+[optimize to k*(n+1)? when adding carry bit, addition won't overflow by more than one bit]
+
+BigMultNoCarry(n, ma, mb, ka, kb)
+> input a[ka], b[kb]
+> output out[ka+kb-1]
+> multiplies a (k_a registers of n bits storing m_a-bit values) and b (k_b registers of n bits storying m_b-bit values) without carrying; note m_a and m_b can be greater than n; this algorithm uses the polynomial trick
+> ka+kb-1 quadratic constraints
+
+LongToShortNoEndCarry(n, k)
+> input in[k]
+> output out[k+1]
+> I have no clue what this does
+> n*(k+1) + k*(n + ceil(log(k))) quadratic constraints
+
+BigMult(n, k):
+> input a[k], b[k]
+> output out[2*k]
+>  
+> 2n-1 + n*(2k) + (2k-1)*(n + ceil(log(2k-1)))

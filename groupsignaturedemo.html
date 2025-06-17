@@ -192,7 +192,7 @@
     </div>
     
     <div class="input-group">
-      <textarea id="userKeys" placeholder="Enter a comma-separated list of up to 100 4096-bit public RSA keys" rows="10"></textarea>
+      <textarea id="userKeys" placeholder="Enter a comma-separated list of up to 10 4096-bit public RSA keys" rows="10"></textarea>
     </div>
 
     <div class="input-group">
@@ -302,7 +302,7 @@
         const parsedSignature = splitBigIntToChunks(parsedSignatureAndKey.signature);
         const parsedKey = splitBigIntToChunks(parsedSignatureAndKey.publicKey);
         
-        const totalKeys = 100;
+        const totalKeys = 10;
         if (parsedKeys.length > totalKeys) {
           throw new Error(`Too many keys: maximum allowed is ${totalKeys}`);
         }
